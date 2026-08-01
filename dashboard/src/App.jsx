@@ -1078,19 +1078,29 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail })
       });
-      const data = await response.json();
+
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        data = { error: text || `Server error: ${response.status}` };
+      }
+
       if (response.ok) {
-        setResetSuccessMsg(data.message);
+        setResetSuccessMsg(data.message || 'OTP sent successfully. Please check your email.');
         setResetErrors({});
         setTimeout(() => {
           setResetSuccessMsg('');
           setAuthMode('verify_otp');
         }, 2000);
       } else {
-        setResetErrors({ email: data.error });
+        setResetErrors({ email: data.error || 'An error occurred. Please try again.' });
       }
     } catch (e) {
-      setResetErrors({ email: "Network error." });
+      console.error("Forgot password error:", e);
+      setResetErrors({ email: "Unable to connect to the server. Please check your internet connection or try again later." });
     } finally {
       setIsSubmitting(false);
     }

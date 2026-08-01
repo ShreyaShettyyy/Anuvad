@@ -83,7 +83,9 @@ app.post('/api/auth/forgot-password', forgotPasswordLimiter, (req, res) => {
   const { email } = req.body;
   console.log(`[FORGOT PASSWORD] Email extracted from payload: ${email}`);
 
-  if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (!email || !/^\\S+@\\S+\\.\\S+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
 
   db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
     if (err) {
@@ -136,11 +138,11 @@ app.post('/api/auth/forgot-password', forgotPasswordLimiter, (req, res) => {
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.error(`[FORGOT PASSWORD] Email send FAILED! Error:`, error);
-          return res.status(500).json({ error: 'Failed to send email. Please verify SMTP credentials.' });
+          return res.status(500).json({ error: 'Unable to send OTP at the moment. Please try again later.' });
         }
         console.log(`[FORGOT PASSWORD] Email send SUCCEEDED! Message ID: ${info.messageId}`);
         console.log(`[FORGOT PASSWORD] SMTP Server Response: ${info.response}`);
-        res.json({ message: 'OTP sent successfully.' });
+        res.json({ message: 'OTP sent successfully. Please check your email.' });
       });
     });
   });
