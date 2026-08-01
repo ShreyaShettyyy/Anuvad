@@ -61,17 +61,36 @@ app.post('/api/auth/register', async (req, res) => {
 
 // 2. Login Endpoint
 app.post('/api/auth/login', (req, res) => {
+  console.log('\n[LOGIN] Request received.');
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+  console.log(`[LOGIN] Email received: ${email}`);
+
+  if (!email || !password) {
+    console.log('[LOGIN] Failure: Email and password are required');
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
 
   db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
-
+    if (err) {
+      console.error('[LOGIN] Failure: Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (!user) {
+      console.log(`[LOGIN] Failure: User NOT found in database for email: ${email}`);
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    
+    console.log(`[LOGIN] User found in database: ID=${user.id}, FullName=${user.full_name}`);
+    
     const match = await bcrypt.compare(password, user.password);
+    console.log(`[LOGIN] Password hash comparison result: ${match}`);
+    
     if (match) {
+      console.log(`[LOGIN] Success: Login successful for ${email}`);
       res.json({ message: 'Login successful', email, fullName: user.full_name });
     } else {
+      console.log(`[LOGIN] Failure: Incorrect password for ${email}`);
       res.status(401).json({ error: 'Invalid email or password.' });
     }
   });
