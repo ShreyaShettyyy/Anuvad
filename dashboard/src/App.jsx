@@ -25,7 +25,7 @@ import {
 import SYNONYMS from './synonyms';
 
 
-// Euclidean Distance for k-NN
+
 function euclideanDistance(a, b) {
   let sum = 0;
   for (let i = 0; i < a.length; i++) {
@@ -35,7 +35,7 @@ function euclideanDistance(a, b) {
 }
 
 
-// Detailed descriptions for each sign reference card in the scrollable snap carousel
+
 const SIGN_DESCRIPTIONS = {
   ISL: {
     A: "Touch the index tip of your dominant hand to the thumb tip of your non-dominant hand.",
@@ -190,12 +190,12 @@ const SIGN_DESCRIPTIONS = {
 };
 
 
-// Procedural Sign Drawing Engine (Canvas) - Non-exported to keep Fast Refresh active
+
 function drawProceduralLetter(ctx, letter, signLang) {
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   
-  // Spaced out bases to make the hand look open, proper, and not congested
+
   const fingerBases = {
     thumb: { x: 0.20, y: 0.70 },
     index: { x: letter === 'U' ? 0.44 : (letter === 'V' ? 0.38 : 0.35), y: 0.58 },
@@ -208,7 +208,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
     const wrist = { x: 0.5, y: 0.90 };
     const joints = [wrist]; // 0: wrist
 
-    // Helper to calculate joint layouts with elongated finger segments
+
     const addFingerJoints = (base, state) => {
       let pip, dip, tip;
       
@@ -217,7 +217,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
         dip = { x: base.x, y: base.y - 0.30 };
         tip = { x: base.x, y: base.y - 0.42 };
       } else if (state === 'down') {
-        // Elongated downwards fold to prevent visual congestion inside the palm
+
         pip = { x: base.x, y: base.y + 0.08 };
         dip = { x: base.x - 0.01, y: base.y + 0.16 };
         tip = { x: base.x - 0.02, y: base.y + 0.22 };
@@ -230,7 +230,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
         dip = { x: base.x + 0.15, y: base.y - 0.07 };
         tip = { x: base.x + 0.21, y: base.y - 0.09 };
       } else { // curved
-        // Spacious C-curve offset
+
         pip = { x: base.x - 0.07, y: base.y - 0.05 };
         dip = { x: base.x - 0.10, y: base.y - 0.14 };
         tip = { x: base.x - 0.04, y: base.y - 0.20 };
@@ -238,7 +238,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       joints.push(base, pip, dip, tip);
     };
 
-    // Thumb specific calculation
+
     let tPip, tDip, tTip;
     const tBase = fingerBases.thumb;
     if (states.thumb === 'out') {
@@ -256,13 +256,13 @@ function drawProceduralLetter(ctx, letter, signLang) {
     }
     joints.push(tBase, tPip, tDip, tTip); // 1, 2, 3, 4: thumb
 
-    // Add rest of fingers
+
     addFingerJoints(fingerBases.index, states.index); // 5,6,7,8: index
     addFingerJoints(fingerBases.middle, states.middle); // 9,10,11,12: middle
     addFingerJoints(fingerBases.ring, states.ring); // 13,14,15,16: ring
     addFingerJoints(fingerBases.pinky, states.pinky); // 17,18,19,20: pinky
 
-    // Rotate G & H 90 degrees counter-clockwise (pointing sideways)
+
     if (letter === 'G' || letter === 'H' || letter === 'POINTING LEFT') {
       joints.forEach((j, idx) => {
         if (idx > 0) {
@@ -274,7 +274,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       });
     }
 
-    // Rotate pointing right 90 degrees clockwise
+
     if (letter === 'POINTING RIGHT') {
       joints.forEach((j, idx) => {
         if (idx > 0) {
@@ -286,7 +286,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       });
     }
 
-    // Rotate P & Q 180 degrees (pointing downwards)
+
     if (letter === 'P' || letter === 'Q' || letter === 'THIS' || letter === 'POINTING DOWN' || letter === 'THUMBS DOWN') {
       joints.forEach((j, idx) => {
         if (idx > 0) {
@@ -298,7 +298,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       });
     }
 
-    // Mirror if left hand
+
     if (!isRightHand) {
       joints.forEach(j => {
         j.x = 1.0 - j.x;
@@ -309,7 +309,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
   };
 
   const drawJointsOnCanvas = (joints) => {
-    // Margin and widths scale with canvas size to stay proportional and clear
+
     const margin = ctx.canvas.width * 0.08;
     const drawW = ctx.canvas.width - 2 * margin;
     const drawH = ctx.canvas.height - 2 * margin;
@@ -332,10 +332,10 @@ function drawProceduralLetter(ctx, letter, signLang) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // 1st Pass: Draw thick black outline silhouette
+
     ctx.strokeStyle = '#000000';
     
-    // Thick Palm outline
+
     ctx.beginPath();
     ctx.moveTo(scaledPts[0].x, scaledPts[0].y);
     ctx.lineTo(scaledPts[1].x, scaledPts[1].y);
@@ -349,7 +349,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
     ctx.fillStyle = '#000000';
     ctx.fill();
 
-    // Thick Finger outlines
+
     fingers.forEach(f => {
       ctx.lineWidth = f.width + 3.2 * scaleFactor;
       ctx.beginPath();
@@ -360,10 +360,10 @@ function drawProceduralLetter(ctx, letter, signLang) {
       ctx.stroke();
     });
 
-    // 2nd Pass: Fill with peach skin inner core
+
     ctx.strokeStyle = '#fdc57a';
 
-    // Peach Palm Fill
+
     ctx.beginPath();
     ctx.moveTo(scaledPts[0].x, scaledPts[0].y);
     ctx.lineTo(scaledPts[1].x, scaledPts[1].y);
@@ -375,7 +375,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
     ctx.fillStyle = '#fdc57a';
     ctx.fill();
 
-    // Thinner Peach Finger Fills
+
     fingers.forEach(f => {
       ctx.lineWidth = f.width;
       ctx.beginPath();
@@ -386,7 +386,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       ctx.stroke();
     });
 
-    // Draw clean black fingertip dots
+
     scaledPts.forEach((pt, idx) => {
       const isTip = [4, 8, 12, 16, 20].includes(idx);
       if (isTip) {
@@ -397,7 +397,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
       }
     });
 
-    // 3rd Pass: Draw sleeve cuff at wrist
+
     const wristPt = scaledPts[0];
     const cuffW = 34 * scaleFactor;
     const cuffH = 14 * scaleFactor;
@@ -423,11 +423,11 @@ function drawProceduralLetter(ctx, letter, signLang) {
   };
 
 
-    // ISL double hand templates (corresponds to BSL two-handed alphabet and ISL digits)
+
     let leftStates = { thumb: 'in', index: 'down', middle: 'down', ring: 'down', pinky: 'down' };
     let rightStates = { thumb: 'in', index: 'down', middle: 'down', ring: 'down', pinky: 'down' };
 
-    // Word-level sign configurations
+
     if (letter === 'HI' || letter === 'HELLO') {
       rightStates = { thumb: 'out', index: 'up', middle: 'up', ring: 'up', pinky: 'up' };
       leftStates = { thumb: 'in', index: 'down', middle: 'down', ring: 'down', pinky: 'down' };
@@ -659,7 +659,7 @@ function drawProceduralLetter(ctx, letter, signLang) {
     ctx.restore();
 }
 
-// Unique SignBridge Logo Component (representing a stylized hand shape and arching bridge)
+
 function SignBridgeLogo({ size = 20 }) {
   return (
     <svg 
@@ -673,9 +673,9 @@ function SignBridgeLogo({ size = 20 }) {
       strokeLinejoin="round"
       style={{ display: 'block' }}
     >
-      {/* Bridge Arch */}
+
       <path d="M2 19C6 11 18 11 22 19" />
-      {/* Hand / Connectors */}
+
       <path d="M12 21V13M12 13C12 11.5 13.5 10.5 13.5 9.5V5C13.5 4 12.5 3 11.5 3C10.5 3 9.5 4 9.5 5V13" />
       <path d="M7.5 14.5c0-1 1-2 2-2" />
       <path d="M14.5 12.5c1 0 2 1 2 2" />
@@ -683,7 +683,7 @@ function SignBridgeLogo({ size = 20 }) {
   );
 }
 
-// Letter Canvas Component to draw guides instantly and cleanly
+
 function LetterCanvas({ letter, signLang, width = 200, height = 200 }) {
   const canvasRef = useRef(null);
 
@@ -705,11 +705,11 @@ function LetterCanvas({ letter, signLang, width = 200, height = 200 }) {
   );
 }
 
-// Dictionary Image Component with dynamic vector outline fallback
+
 function DictionaryImage({ item, signLang, className = "card-image", width = 160, height = 160, customDict = [] }) {
   const [pathIndex, setPathIndex] = useState(0);
 
-  // Reset when the requested item changes
+
   useEffect(() => {
     setPathIndex(0);
   }, [item]);
@@ -720,7 +720,7 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
   const lookupKey = cleanItem.toLowerCase();
   const upperItem = cleanItem.toUpperCase();
 
-  // First, check if this item exists in the custom dictionary
+
   const customMatch = Array.isArray(customDict) && customDict.find(d => d.label === upperItem);
   if (customMatch) {
     return (
@@ -733,14 +733,14 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
     );
   }
 
-  // Also check if any synonym of this item exists in customDict
+
   if (SYNONYMS && Array.isArray(customDict)) {
     for (const [key, list] of Object.entries(SYNONYMS)) {
       const keyMatch = key.toLowerCase() === lookupKey;
       const listMatch = Array.isArray(list) && list.some(val => typeof val === 'string' && val.toLowerCase() === lookupKey);
 
       if (keyMatch || listMatch) {
-        // Check if the key synonym exists in customDict
+
         const customKeyMatch = customDict.find(d => d.label === key.toUpperCase());
         if (customKeyMatch) {
           return (
@@ -753,7 +753,7 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
           );
         }
         
-        // Check if any value in list exists in customDict
+
         if (Array.isArray(list)) {
           for (const val of list) {
             const customValMatch = customDict.find(d => d.label === val.toUpperCase());
@@ -773,26 +773,26 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
     }
   }
 
-  // Find all possible words to try as the image filename.
-  // We want to try the word itself, and all synonyms from its group.
+
+
   const candidateWords = new Set();
   candidateWords.add(cleanItem);
   candidateWords.add(cleanItem.toLowerCase());
   candidateWords.add(cleanItem.toUpperCase());
 
-  // Check if this item exists in synonyms (either as a key, or inside the array values of a key)
+
   if (SYNONYMS) {
     for (const [key, list] of Object.entries(SYNONYMS)) {
       const keyMatch = key.toLowerCase() === lookupKey;
       const listMatch = Array.isArray(list) && list.some(val => typeof val === 'string' && val.toLowerCase() === lookupKey);
 
       if (keyMatch || listMatch) {
-        // Add the key of the synonym group
+
         candidateWords.add(key);
         candidateWords.add(key.toLowerCase());
         candidateWords.add(key.toUpperCase());
         
-        // Add all values in the list
+
         if (Array.isArray(list)) {
           for (const val of list) {
             if (typeof val === 'string') {
@@ -806,10 +806,10 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
     }
   }
 
-  // Extensions to check (support png, jpg, jpeg, gif, svg in that order of preference)
+
   const EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg'];
 
-  // Build the list of paths
+
   const paths = [];
   for (const word of candidateWords) {
     const wordSafe = encodeURIComponent(word);
@@ -818,7 +818,7 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
     }
   }
 
-  // Fallback paths in case it's in the general /images directory
+
   for (const word of candidateWords) {
     const wordSafe = encodeURIComponent(word);
     for (const ext of EXTENSIONS) {
@@ -826,7 +826,7 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
     }
   }
 
-  // If we have exhausted all paths, render nothing (no ugly fallback canvas)
+
   if (pathIndex >= paths.length) {
     return null;
   }
@@ -845,12 +845,12 @@ function DictionaryImage({ item, signLang, className = "card-image", width = 160
 }
 
 
-// Keep a single global reference to the Hands instance to prevent double-initialization in React StrictMode
+
 let globalHands = null;
 let globalHandsPromise = null;
 
 export default function App() {
-  // Authentication & Login States
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
       return localStorage.getItem('signbridge_authenticated') === 'true';
@@ -891,10 +891,10 @@ export default function App() {
   const [resetSuccessMsg, setResetSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dashboard Instant Lookup state
+
   const [dashboardLookupWord, setDashboardLookupWord] = useState('');
 
-  // Custom Dictionary states
+
   const [customDictionary, setCustomDictionary] = useState(() => {
     try {
       const saved = localStorage.getItem('signbridge_custom_dictionary');
@@ -1047,13 +1047,13 @@ export default function App() {
       if (response.ok) {
         setRegisterErrors({});
         
-        // Clear registration form
+
         setRegisterFullName('');
         setRegisterEmail('');
         setRegisterPassword('');
         setRegisterConfirmPassword('');
         
-        // Redirect back to sign in
+
         setAuthMode('login');
       } else {
         setRegisterErrors({ email: data.error || "Registration failed." });
@@ -1180,7 +1180,7 @@ export default function App() {
     setIsAuthenticated(false);
     setAuthMode('login');
     
-    // Clear all forms
+
     setLoginEmail('');
     setLoginPassword('');
     setRegisterFullName('');
@@ -1199,7 +1199,7 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Navigation & Language Selector
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [signLang, setSignLang] = useState('ISL');
   const [isCapturing, setIsCapturing] = useState(false);
@@ -1258,7 +1258,7 @@ export default function App() {
     }
   };
 
-  // Unified Dictionary items list (A-Z, 1-10, static words, and custom uploaded words)
+
   const staticDictionaryItems = [
     ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
     ..."1 2 3 4 5 6 7 8 9 10".split(" "),
@@ -1277,7 +1277,7 @@ export default function App() {
     ...customDictionary.map(c => c.label)
   ]));
 
-  // Keyboard navigation for the maximized modal
+
   useEffect(() => {
     if (!maximizedSign) return;
 
@@ -1302,7 +1302,7 @@ export default function App() {
     };
   }, [maximizedSign]);
 
-  // Recognition data states
+
   const [dataset, setDataset] = useState([]);
   const [customGestures, setCustomGestures] = useState(() => {
     try {
@@ -1314,7 +1314,7 @@ export default function App() {
     }
   });
 
-  // Sync custom gestures to localStorage
+
   useEffect(() => {
     try {
       localStorage.setItem('signbridge_custom_gestures', JSON.stringify(customGestures));
@@ -1327,7 +1327,7 @@ export default function App() {
   const [translationHistory, setTranslationHistory] = useState([]);
   const [autoSpeak, setAutoSpeak] = useState(false);
 
-  // Text-to-Sign states
+
   const [textToTranslate, setTextToTranslate] = useState('');
   const [isDictating, setIsDictating] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1500);
@@ -1335,13 +1335,13 @@ export default function App() {
   const [currentPlaybackIndex, setCurrentPlaybackIndex] = useState(-1);
   const [playbackText, setPlaybackText] = useState([]);
 
-  // Custom calibration states
+
   const [newGestureName, setNewGestureName] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordProgress, setRecordProgress] = useState(0);
   const [recordedFrames, setRecordedFrames] = useState([]);
 
-  // Stream & Frame refs
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const avatarCanvasRef = useRef(null);
@@ -1358,14 +1358,14 @@ export default function App() {
 
   const handleHandResultsRef = useRef(null);
 
-  // Keep callback ref updated to solve stale closures
+
   useEffect(() => {
     handleHandResultsRef.current = handleHandResults;
   });
 
-  // Initialize MediaPipe model globally and warm up WASM immediately
+
   useEffect(() => {
-    // Load pre-trained coordinate rules
+
     fetch('/pretrained_dataset.json')
       .then(res => res.json())
       .then(data => {
@@ -1409,7 +1409,7 @@ export default function App() {
             }
           });
 
-          // Pre-warm the WASM compiler using a blank 1x1 canvas to prevent loading freezes
+
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = 1;
           tempCanvas.height = 1;
@@ -1445,7 +1445,7 @@ export default function App() {
 
   const activeDataset = [...dataset, ...customGestures];
 
-  // Auto-manage camera when switching tabs (solving DOM mounting race conditions)
+
   useEffect(() => {
     let timer = null;
     if (activeTab === 'sign-to-speech' || activeTab === 'gesture-studio') {
@@ -1460,7 +1460,7 @@ export default function App() {
     };
   }, [activeTab]);
 
-  // Handle TTS speak with a short queue clearance delay (Chrome fix)
+
   const speakText = (text) => {
     if (!text || text === 'No Sign Detected' || text === '?') return;
     try {
@@ -1475,7 +1475,7 @@ export default function App() {
     }
   };
 
-  // Microphone dictation (Voice-to-Sign)
+
   const startSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -1513,7 +1513,7 @@ export default function App() {
     recognition.start();
   };
 
-  // Direct robust HTML5 camera streaming
+
   const startCamera = async () => {
     if (isCameraActive) return;
 
@@ -1537,7 +1537,7 @@ export default function App() {
     }
   };
 
-  // Frame processing animation frame loop with isCameraActive guard
+
   const startFrameProcessing = () => {
     const process = async () => {
       if (!activeStreamRef.current || !videoRef.current || videoRef.current.paused || videoRef.current.ended) {
@@ -1556,7 +1556,7 @@ export default function App() {
     animationFrameIdRef.current = requestAnimationFrame(process);
   };
 
-  // Stop camera feed and release media tracks
+
   const stopCamera = () => {
     setIsCameraActive(false);
     setPrediction('No Sign Detected');
@@ -1583,7 +1583,7 @@ export default function App() {
     }
   };
 
-  // Bounding box brackets and color-coded knuckle joints
+
   const drawAdvancedHand = (ctx, landmarks, isRightHand) => {
     const xList = landmarks.map(lm => lm.x * ctx.canvas.width);
     const yList = landmarks.map(lm => lm.y * ctx.canvas.height);
@@ -1597,13 +1597,13 @@ export default function App() {
     ctx.lineWidth = 2.5;
     const len = 15;
     
-    // Top-Left corner
+
     ctx.beginPath(); ctx.moveTo(minX + len, minY); ctx.lineTo(minX, minY); ctx.lineTo(minX, minY + len); ctx.stroke();
-    // Top-Right corner
+
     ctx.beginPath(); ctx.moveTo(maxX - len, minY); ctx.lineTo(maxX, minY); ctx.lineTo(maxX, minY + len); ctx.stroke();
-    // Bottom-Left corner
+
     ctx.beginPath(); ctx.moveTo(minX + len, maxY); ctx.lineTo(minX, maxY); ctx.lineTo(minX, maxY - len); ctx.stroke();
-    // Bottom-Right corner
+
     ctx.beginPath(); ctx.moveTo(maxX - len, maxY); ctx.lineTo(maxX, maxY); ctx.lineTo(maxX, maxY - len); ctx.stroke();
     
     ctx.fillStyle = isRightHand ? '#5c6bc0' : '#8e24aa';
@@ -1670,7 +1670,7 @@ export default function App() {
     ctx.restore();
   };
 
-  // Normalization
+
   const getNormalizedLandmarks = (handLandmarks) => {
     let vw = 640;
     let vh = 480;
@@ -1679,8 +1679,8 @@ export default function App() {
       vh = videoRef.current.videoHeight;
     }
 
-    // Convert landmarks to match the 4:3 aspect ratio the model was trained on
-    // This prevents aspect ratio distortion (e.g. from mobile portrait cameras)
+
+
     const adjustedLandmarks = handLandmarks.map(lm => {
       return {
         x: lm.x,
@@ -1708,7 +1708,7 @@ export default function App() {
     return { features, scale, minX, minY };
   };
 
-  // k-NN predict query - upgraded with horizontal mirroring for handedness invariance
+
   const predictKNN = (inputFeatures, k = 7) => {
     if (activeDataset.length === 0) return { label: '?', confidence: 0 };
 
@@ -1723,7 +1723,7 @@ export default function App() {
     }
 
     const mirroredFeatures = inputFeatures.map((val, idx) => {
-      // If the value is exactly 0.0 for a missing hand, leave it as 0.0
+
       if (val === 0.0 && inputFeatures[idx - (idx % 2)] === 0.0) return val;
       if (idx % 2 === 0) {
         return (idx < 42 ? maxX1 : maxX2) - val;
@@ -1731,14 +1731,14 @@ export default function App() {
       return val;
     });
 
-    // Make the model completely immune to MediaPipe randomly swapping the order of detected hands
+
     let swappedFeatures = [...inputFeatures];
     let swappedMirrored = [...mirroredFeatures];
     if (inputFeatures.length === 84) {
       const h1 = inputFeatures.slice(0, 42);
       const h2 = inputFeatures.slice(42, 84);
       if (h2.some(v => v !== 0)) {
-        // Swap hands
+
         swappedFeatures = [...h2, ...h1];
         swappedMirrored = [...mirroredFeatures.slice(42, 84), ...mirroredFeatures.slice(0, 42)];
       }
@@ -1793,7 +1793,7 @@ export default function App() {
     };
   };
 
-  // Handle MediaPipe result callbacks
+
   const handleHandResults = (results) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1837,7 +1837,7 @@ export default function App() {
 
     let dynamicSign = null;
     
-    // Wave recognition horizontal swing
+
     if (trajectoryBufferRef.current.length >= 15 && results.multiHandLandmarks.length === 1) {
       const xVals = trajectoryBufferRef.current.map(p => p.x);
       const minX = Math.min(...xVals);
@@ -1853,14 +1853,14 @@ export default function App() {
       }
     }
 
-    // Clap recognition hand convergence / deaf shake clapping
+
     if (trajectoryBufferRef.current.length >= 12) {
-      // Analyze frame-to-frame change of all hand coordinates (velocity metric)
-      // Rapid horizontal hand shaking (deaf clapping) keeps wrist close but shakes fingers
+
+
       const wristPositions = trajectoryBufferRef.current.map(p => p.x);
       const wristDelta = Math.max(...wristPositions) - Math.min(...wristPositions);
 
-      // Check average knuckle movement velocity (knuckle 8 index tip)
+
       const indexTip = hand1[8];
       const pinkyTip = hand1[20];
       if (!window.clapHistory) window.clapHistory = [];
@@ -1913,11 +1913,11 @@ export default function App() {
       finalLabel = dynamicSign;
       finalConf = 95;
     } else if (isCustom && knnRes.confidence >= 55) {
-      // Prioritize custom calibrated gestures!
+
       finalLabel = knnRes.label;
       finalConf = knnRes.confidence;
     } else {
-      // For ISL, use k-NN directly
+
       finalLabel = knnRes.label;
       finalConf = knnRes.confidence;
     }
@@ -1926,7 +1926,7 @@ export default function App() {
       setRecordedFrames(prev => [...prev, dataAux]);
     }
 
-    // Prediction Smoothing Filter (Majority Voting)
+
     if (finalLabel !== '?') {
       predictionBufferRef.current.push(finalLabel);
       if (predictionBufferRef.current.length > 10) {
@@ -1963,7 +1963,7 @@ export default function App() {
           stabilityCountRef.current = 0;
           stabilityLabelRef.current = null;
         } else {
-          // Frame-Stability lock to filter out transient transition typos
+
           if (stabilityLabelRef.current !== smoothLabel) {
             stabilityLabelRef.current = smoothLabel;
             stabilityCountRef.current = 1;
@@ -1971,7 +1971,7 @@ export default function App() {
             stabilityCountRef.current += 1;
           }
 
-          // Require the sign to hold stable for at least 8 frames before registry
+
           if (stabilityCountRef.current >= 8) {
             if (isCapturing && smoothLabel !== '?' && smoothLabel !== lastAppendedLabelRef.current) {
               setTranslationHistory(prev => [
@@ -2005,7 +2005,7 @@ export default function App() {
     setTranslationHistory([]);
   };
 
-  // Helper to split a sentence into supported word-level signs and fallback characters
+
   const tokenizePhrase = (text) => {
     const cleanText = text.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim();
     
@@ -2016,14 +2016,14 @@ export default function App() {
       phraseSet.add(p.toUpperCase());
     }
 
-    // Add dictionary items/words
+
     for (const item of dictionaryItems) {
       if (item.length > 1) {
         phraseSet.add(item.toUpperCase());
       }
     }
 
-    // Add all synonyms (keys and value arrays)
+
     if (SYNONYMS) {
       for (const [key, list] of Object.entries(SYNONYMS)) {
         phraseSet.add(key.toUpperCase());
@@ -2037,13 +2037,13 @@ export default function App() {
       }
     }
 
-    // Sort by length descending to match longest phrases first
+
     const supportedPhrases = Array.from(phraseSet).sort((a, b) => b.length - a.length);
     
     let tokens = [];
     let index = 0;
     
-    // Split MY NAME IS into MY and NAME sequence
+
     const processedText = cleanText.replace(/\bMY NAME IS\b/g, "MY NAME").replace(/\bHOW ARE YOU\b/g, "HOW YOU");
     
     while (index < processedText.length) {
@@ -2081,7 +2081,7 @@ export default function App() {
     return tokens;
   };
 
-  // Text-to-Sign visualizer playback loop
+
   const handleTranslatePlayback = () => {
     if (!textToTranslate.trim()) return;
     
@@ -2089,7 +2089,7 @@ export default function App() {
     setIsPlaying(true);
     setCurrentPlaybackIndex(0);
 
-    // Auto-scroll on mobile to show animation without manual scrolling
+
     if (window.innerWidth <= 1024 && avatarCanvasRef.current) {
       avatarCanvasRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -2099,7 +2099,7 @@ export default function App() {
 
     let currentIndex = 0;
     
-    // Speak the entire phrase naturally as a complete sentence
+
     speakText(textToTranslate);
 
     const canvas = avatarCanvasRef.current;
@@ -2157,7 +2157,7 @@ export default function App() {
     }
   };
 
-  // Custom gesture calibration
+
   const startRecordingGesture = () => {
     if (!newGestureName.trim()) {
       alert("Please enter a name for the gesture.");
@@ -2237,7 +2237,7 @@ export default function App() {
 
           {authMode === 'login' ? (
             <form onSubmit={handleLogin} noValidate className="login-form">
-              {/* Email Field */}
+
               <div className="form-group">
                 <label htmlFor="login-email">Email Address</label>
                 <input 
@@ -2260,7 +2260,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Password Field */}
+
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label htmlFor="login-password">Password</label>
@@ -2320,7 +2320,7 @@ export default function App() {
             </form>
           ) : authMode === 'register' ? (
             <form onSubmit={handleRegister} noValidate className="login-form">
-              {/* Register Full Name Field */}
+
               <div className="form-group">
                 <label htmlFor="register-fullname">Full Name</label>
                 <input 
@@ -2339,7 +2339,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Register Email Field */}
+
               <div className="form-group">
                 <label htmlFor="register-email">Email Address</label>
                 <input 
@@ -2358,7 +2358,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Register Password Field */}
+
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label htmlFor="register-password">Password</label>
@@ -2390,7 +2390,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Register Confirm Password Field */}
+
               <div className="form-group">
                 <label htmlFor="register-confirm-password">Confirm Password</label>
                 <input 
@@ -2492,12 +2492,12 @@ export default function App() {
 
   return (
     <div className={`app-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      {/* Mobile overlay */}
+
       {!isSidebarCollapsed && (
         <div className="mobile-sidebar-overlay" onClick={() => setIsSidebarCollapsed(true)}></div>
       )}
       
-      {/* Sidebar navigation */}
+
       <aside className="sidebar">
         <div className="logo-container">
           <div className="logo-icon" title="SignBridge">
@@ -2586,7 +2586,7 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main content viewport */}
+
       <main className="main-content">
         <header className="header">
           <div className="mobile-header-controls">
@@ -2618,10 +2618,10 @@ export default function App() {
         </header>
 
         <div className="content-body">
-          {/* Dashboard Tab */}
+
           {activeTab === 'dashboard' && (
             <div className="dashboard-portal-container">
-              {/* Left Panel: Welcome, System status, and Search lookup */}
+
               <div className="portal-left-panel glass-panel">
                 <div className="portal-welcome-section">
                   <div className="portal-greeting-badge">
@@ -2662,7 +2662,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Instant Search Lookup Widget */}
+
                 <div className="portal-search-widget">
                   <h3 className="portal-sub-title">Instant Sign Dictionary Lookup</h3>
                   <p className="portal-widget-desc">Type any dictionary word or letter below to view its sign reference instantly.</p>
@@ -2699,7 +2699,7 @@ export default function App() {
                             </div>
                           );
                         } else {
-                          // Check if there is a synonym matching
+
                           let synonymKey = null;
                           if (SYNONYMS) {
                             for (const [key, list] of Object.entries(SYNONYMS)) {
@@ -2740,12 +2740,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Right Panel: Vertical action rows/launchers */}
+
               <div className="portal-right-panel">
                 <h2 className="portal-section-title">Studio Quick Launch Toolkit</h2>
                 
                 <div className="launcher-list">
-                  {/* Row 1: Live Sign-to-Speech */}
+
                   <div className="launcher-row glass-panel" onClick={() => {
                     setActiveTab('sign-to-speech');
                     startCamera();
@@ -2762,7 +2762,7 @@ export default function App() {
                     <button className="btn-launcher-action">Launch</button>
                   </div>
 
-                  {/* Row 2: Fingerspelling Visualizer */}
+
                   <div className="launcher-row glass-panel" onClick={() => setActiveTab('text-to-sign')}>
                     <div className="launcher-icon-box purple-theme">
                       <Speech size={22} />
@@ -2776,7 +2776,7 @@ export default function App() {
                     <button className="btn-launcher-action">Launch</button>
                   </div>
 
-                  {/* Row 3: Calibration Studio */}
+
                   <div className="launcher-row glass-panel" onClick={() => {
                     setActiveTab('gesture-studio');
                     startCamera();
@@ -2793,7 +2793,7 @@ export default function App() {
                     <button className="btn-launcher-action">Launch</button>
                   </div>
 
-                  {/* Row 4: Dictionary */}
+
                   <div className="launcher-row glass-panel" onClick={() => setActiveTab('guide')}>
                     <div className="launcher-icon-box blue-theme">
                       <BookOpen size={22} />
@@ -2808,7 +2808,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Compact Stats Grid at bottom right */}
+
                 <div className="portal-mini-stats">
                   <div className="mini-stat-card glass-panel">
                     <span className="mini-stat-val">{36 + uniqueCustomGestures.length}</span>
@@ -2831,11 +2831,11 @@ export default function App() {
             </div>
           )}
 
-          {/* Sign-to-Speech Tab */}
+
           {activeTab === 'sign-to-speech' && (
             <div className="webcam-layout">
               <div className="webcam-container glass-panel">
-                {/* AI Model Loading Indicator */}
+
                 {!isModelReady && isCameraActive && (
                   <div style={{ position: 'absolute', zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.85)', width: '100%', height: '100%', borderRadius: '20px' }}>
                     <div className="logo-icon" style={{ animation: 'pulse 1s infinite', marginBottom: '12px' }}>AI</div>
@@ -2959,7 +2959,7 @@ export default function App() {
                     </label>
                   </div>
 
-                  {/* Sentence Builder inside Prediction Box */}
+
                   <div style={{ marginTop: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '16px', width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>Sentence Builder</span>
@@ -3011,7 +3011,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Text-to-Sign Tab */}
+
           {activeTab === 'text-to-sign' && (
             <div className="translator-layout">
               <div className="input-panel glass-panel">
@@ -3061,7 +3061,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Text-to-Sign Playback View */}
+
               <div className="visualizer-avatar-panel glass-panel">
                 <div className="card-header" style={{ width: '100%' }}>
                   <h2>Fingerspelling Visualizer</h2>
@@ -3107,7 +3107,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Gesture Studio Tab */}
+
           {activeTab === 'gesture-studio' && (
             <div className="studio-layout">
               <div className="glass-panel">
@@ -3115,11 +3115,11 @@ export default function App() {
                   <h2>Trained Sign Calibrator</h2>
                 </div>
                 <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Move Calibration Preview to the top to avoid scrolling */}
+
                   <div>
                     <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '8px' }}>Calibration Preview</h3>
                     <div className="webcam-container glass-panel" style={{ width: '100%', height: '300px', position: 'relative', overflow: 'hidden' }}>
-                      {/* AI Model Loading Indicator */}
+
                       {!isModelReady && isCameraActive && (
                         <div style={{ position: 'absolute', zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.85)', width: '100%', height: '100%', borderRadius: '20px' }}>
                           <div className="logo-icon" style={{ animation: 'pulse 1s infinite', marginBottom: '12px' }}>AI</div>
@@ -3222,14 +3222,14 @@ export default function App() {
             </div>
           )}
 
-          {/* Dictionary/Guide Tab (Rendering letters immediately) */}
+
           {activeTab === 'guide' && (
             <div className="glass-panel" style={{ width: '100%' }}>
               <div className="card-header">
                 <h2>Indian Sign Language (ISL) Dictionary Reference</h2>
               </div>
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Dictionary How-to-Use Guide */}
+
                 <div className="dictionary-instructions">
                   <div className="instruction-header">
                     <HelpCircle size={20} className="instruction-icon" />
@@ -3257,7 +3257,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Custom Dictionary Upload Section */}
+
                 <div className="custom-dict-uploader-section" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '20px', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -3277,7 +3277,7 @@ export default function App() {
                   {showAddForm && (
                     <form onSubmit={handleAddDictItem} className="glass-panel" style={{ marginTop: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', borderRadius: '16px', border: '1px solid var(--border-color)', animation: 'fadeIn 0.3s ease' }}>
                       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                        {/* Label Name Input */}
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1, minWidth: '240px' }}>
                           <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>Sign Name / Phrase Label</label>
                           <input
@@ -3290,7 +3290,7 @@ export default function App() {
                           />
                         </div>
 
-                        {/* File Upload Selector */}
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1.5, minWidth: '280px' }}>
                           <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>Sign Reference Image</label>
                           <input
@@ -3303,7 +3303,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Image Preview Area */}
+
                       {newDictImage && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
                           <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>Image Preview:</span>
@@ -3313,7 +3313,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* Submit Actions */}
+
                       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '14px' }}>
                         <button
                           type="button"
@@ -3344,7 +3344,7 @@ export default function App() {
                   Click on any card to view it in maximized detail.
                 </p>
 
-                {/* Unified Static Grid of Cards */}
+
                 <div className="dictionary-grid">
                   {dictionaryItems.map((item, idx) => {
                     const isLetter = isNaN(item);
@@ -3358,7 +3358,7 @@ export default function App() {
                         onClick={() => setMaximizedSign(item)}
                       >
 
-                        {/* Subtle delete button for custom signs */}
+
                         {isCustom && (
                           <button
                             className="btn-control delete-btn"
@@ -3411,7 +3411,7 @@ export default function App() {
               </div>
             </div>
           )}
-          {/* Modal Overlay for Maximized Sign */}
+
           {maximizedSign && (() => {
             const item = maximizedSign;
             const isDigit = !isNaN(item);
@@ -3428,12 +3428,12 @@ export default function App() {
                   </button>
                   
                   <div className="modal-body">
-                    {/* Image Section */}
+
                     <div className="modal-image-column">
                       <DictionaryImage item={item} signLang={signLang} width={280} height={280} className="modal-image" customDict={customDictionary} />
                     </div>
                     
-                    {/* Details Section */}
+
                     <div className="modal-details-column">
                       <div className="modal-header-row">
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -3475,7 +3475,7 @@ export default function App() {
                     </div>
                   </div>
                   
-                  {/* Navigation Footer */}
+
                   <div className="modal-footer-nav">
                     <button 
                       className="modal-nav-btn" 

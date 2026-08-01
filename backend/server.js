@@ -14,15 +14,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Rate limiter for OTP requests (max 3 requests per 15 minutes per IP)
+
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 3, 
   message: { error: 'Too many password reset attempts, please try again after 15 minutes' }
 });
 
-// Nodemailer setup using Gmail SMTP
-// Note: Requires a valid Gmail address and App Password in environment variables for production.
+
+
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
@@ -33,12 +33,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Helper to generate 6-digit OTP
+
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// 1. Register Endpoint
+
 app.post('/api/auth/register', async (req, res) => {
   const { fullName, email, password } = req.body;
   if (!fullName || !email || !password) return res.status(400).json({ error: 'Full name, email and password are required' });
@@ -59,7 +59,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// 2. Login Endpoint
+
 app.post('/api/auth/login', (req, res) => {
   console.log('\n[LOGIN] Request received.');
   const { email, password } = req.body;
@@ -96,7 +96,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
-// 3. Forgot Password Endpoint
+
 app.post('/api/auth/forgot-password', forgotPasswordLimiter, (req, res) => {
   console.log(`\n[FORGOT PASSWORD] Request received for password reset.`);
   const { email } = req.body;
@@ -167,7 +167,7 @@ app.post('/api/auth/forgot-password', forgotPasswordLimiter, (req, res) => {
   });
 });
 
-// 4. Verify OTP Endpoint
+
 app.post('/api/auth/verify-otp', (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required' });
@@ -185,7 +185,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
   });
 });
 
-// 5. Reset Password Endpoint
+
 app.post('/api/auth/reset-password', (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!email || !otp || !newPassword) return res.status(400).json({ error: 'Missing required fields' });
