@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import nlp from 'compromise';
+import AnuvaadStream from './AnuvaadStream';
+import AnuvaadVideo from './AnuvaadVideo';
 import { 
   Activity, 
   Volume2, 
@@ -1323,6 +1326,9 @@ export default function App() {
     }
   }, [customGestures]);
   const [prediction, setPrediction] = useState('No Sign Detected');
+  const [gestureSequence, setGestureSequence] = useState([]);
+  const [nlpSentence, setNlpSentence] = useState('');
+  const [lastPredictionTime, setLastPredictionTime] = useState(0);
   const [confidence, setConfidence] = useState(0);
   const [translationHistory, setTranslationHistory] = useState([]);
   const [autoSpeak, setAutoSpeak] = useState(false);
@@ -2527,12 +2533,12 @@ export default function App() {
             {!isSidebarCollapsed && <span>Sign-to-Speech</span>}
           </li>
           <li 
-            className={`nav-item ${activeTab === 'text-to-sign' ? 'active' : ''}`}
-            onClick={() => handleTabChange('text-to-sign')}
-            title={isSidebarCollapsed ? "Text-to-Sign" : ""}
+            className={`nav-item ${activeTab === 'anuvaad-video' ? 'active' : ''}`}
+            onClick={() => handleTabChange('anuvaad-video')}
+            title={isSidebarCollapsed ? "Anuvaad Video" : ""}
           >
             <Speech size={18} />
-            {!isSidebarCollapsed && <span>Text-to-Sign</span>}
+            {!isSidebarCollapsed && <span>Anuvaad Video</span>}
           </li>
           <li 
             className={`nav-item ${activeTab === 'gesture-studio' ? 'active' : ''}`}
@@ -2543,12 +2549,12 @@ export default function App() {
             {!isSidebarCollapsed && <span>Gesture Studio</span>}
           </li>
           <li 
-            className={`nav-item ${activeTab === 'guide' ? 'active' : ''}`}
-            onClick={() => handleTabChange('guide')}
-            title={isSidebarCollapsed ? "Sign Dictionary" : ""}
+            className={`nav-item ${activeTab === 'anuvaad-stream' ? 'active' : ''}`}
+            onClick={() => handleTabChange('anuvaad-stream')}
+            title={isSidebarCollapsed ? "Anuvaad Stream" : ""}
           >
             <BookOpen size={18} />
-            {!isSidebarCollapsed && <span>Sign Dictionary</span>}
+            {!isSidebarCollapsed && <span>Anuvaad Stream</span>}
           </li>
         </ul>
 
@@ -2599,9 +2605,9 @@ export default function App() {
             <h1>
               {activeTab === 'dashboard' && 'Dashboard Overview'}
               {activeTab === 'sign-to-speech' && 'Sign-to-Speech Translator'}
-              {activeTab === 'text-to-sign' && 'Text-to-Sign Visualizer'}
+              {activeTab === 'anuvaad-video' && 'Anuvaad Video (Real-time Sequence)'}
               {activeTab === 'gesture-studio' && 'Custom Gesture Studio'}
-              {activeTab === 'guide' && 'ISL Sign Dictionary'}
+              {activeTab === 'anuvaad-stream' && 'Anuvaad Live Stream'}
             </h1>
             <span className="header-subtitle">
               Interactive Indian Sign Language Translation & Training Platform
@@ -3012,101 +3018,7 @@ export default function App() {
           )}
 
 
-          {activeTab === 'text-to-sign' && (
-            <div className="translator-layout">
-              <div className="input-panel glass-panel">
-                <div className="card-header">
-                  <h2>Text/Voice Input</h2>
-                </div>
-                <div className="card-body">
-                  <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px', lineHeight: '1.5' }}>
-                    Type your sentence or letters below, or click the microphone to speak. The avatar will display the fingerspelling sequence.
-                  </p>
-                  
-                  <div className="textarea-container">
-                    <textarea 
-                      className="text-input-field" 
-                      placeholder="Type words/phrases to translate..."
-                      value={textToTranslate}
-                      onChange={(e) => setTextToTranslate(e.target.value)}
-                    />
-                    <button 
-                      className={`voice-btn ${isDictating ? 'recording' : ''}`}
-                      onClick={startSpeechRecognition}
-                      title={isDictating ? "Listening..." : "Dictate speech"}
-                    >
-                      {isDictating ? <MicOff size={20} /> : <Mic size={20} />}
-                    </button>
-                  </div>
-
-                  <div className="translation-actions" style={{ marginTop: '20px' }}>
-                    {isPlaying ? (
-                      <button 
-                        className="btn-action btn-action-primary" 
-                        onClick={handlePausePlayback}
-                        style={{ background: 'var(--danger)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}
-                      >
-                        <Pause size={16} /> Stop Playback
-                      </button>
-                    ) : (
-                      <button 
-                        className="btn-action btn-action-primary" 
-                        onClick={handleTranslatePlayback}
-                        disabled={!textToTranslate.trim()}
-                      >
-                        <Play size={16} /> Re-enact Translation
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="visualizer-avatar-panel glass-panel">
-                <div className="card-header" style={{ width: '100%' }}>
-                  <h2>Fingerspelling Visualizer</h2>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>SIGN REFERENCE RE-ENACTMENT</span>
-                </div>
-                
-                <div className="avatar-image-container" style={{ width: '300px', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.6)', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.04)', overflow: 'hidden', margin: '20px auto 0 auto' }}>
-                  {currentPlaybackIndex !== -1 && playbackText[currentPlaybackIndex] && playbackText[currentPlaybackIndex] !== ' ' ? (
-                    <DictionaryImage item={playbackText[currentPlaybackIndex]} signLang={signLang} width={280} height={280} customDict={customDictionary} />
-                  ) : (
-                    <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ready for Playback</div>
-                  )}
-                </div>
-
-                <div className="playback-word-indicator">
-                  {currentPlaybackIndex !== -1 && playbackText[currentPlaybackIndex] !== ' '
-                    ? playbackText[currentPlaybackIndex]
-                    : 'Rest Posture'}
-                </div>
-
-                <div className="playback-controls">
-                  <div className="playback-speed">
-                    <span>Rate:</span>
-                    <input 
-                      type="range" 
-                      min="500" 
-                      max="3000" 
-                      step="100"
-                      value={playbackSpeed}
-                      onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                      className="speed-slider"
-                    />
-                    <span>{playbackSpeed}ms</span>
-                  </div>
-
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                    {currentPlaybackIndex !== -1 
-                      ? `${currentPlaybackIndex + 1} / ${playbackText.length}` 
-                      : 'Standby'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
+          {activeTab === 'anuvaad-video' && <AnuvaadVideo />}
 
           {activeTab === 'gesture-studio' && (
             <div className="studio-layout">

@@ -31,3 +31,12 @@ build/
 Thumbs.db
 *.lnk
 *.db
+
+# SignBridge specific ignores
+include_dataset/
+custom_dataset/
+lstm_dataset/
+backend/.env
+backend/uploads/
+*.mp4
+*.MOV

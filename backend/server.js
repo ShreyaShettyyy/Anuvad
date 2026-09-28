@@ -4,6 +4,17 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 const db = require('./database');
+const multer = require('multer');
+const { GoogleGenAI } = require('@google/genai');
+const fsModule = require('fs');
+const path = require('path');
+require('dotenv').config();
+
+const upload = multer({ dest: 'uploads/' });
+
+// Initialize Gemini Client
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -209,6 +220,142 @@ app.post('/api/auth/reset-password', (req, res) => {
       res.status(500).json({ error: 'Server error' });
     }
   });
+});
+
+
+app.post('/api/predict_video', upload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No video file provided' });
+    }
+
+    const originalFilePath = path.resolve(req.file.path);
+    // Add .mp4 extension so OpenCV can read it properly
+    const filePath = originalFilePath + '.mp4';
+    try { fsModule.renameSync(originalFilePath, filePath); } catch(e) {}
+    
+    console.log('[GEMINI] Received video file:', req.file.originalname);
+    console.log('[GEMINI] Extracting frames to bypass Video API 503 error...');
+    
+    const { exec } = require('child_process');
+    const pythonExecutable = path.resolve(path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe'));
+    const extractScriptPath = path.resolve(path.join(__dirname, '..', 'extract_frames.py'));
+    
+    exec(`"${pythonExecutable}" "${extractScriptPath}" "${filePath}"`, { maxBuffer: 1024 * 1024 * 50 }, async (error, stdout, stderr) => {
+
+      if (error) {
+        console.error('[GEMINI] Error extracting frames:', error);
+        return res.status(500).json({ error: 'Failed to extract frames' });
+      }
+
+      try {
+        const frameData = JSON.parse(stdout);
+        if (frameData.error) throw new Error(frameData.error);
+        
+        const contents = [
+          `You are an expert Sign Language translator. I am providing you with sequential frames from a sign language video.
+The person is signing a continuous sequence of multiple words (a sentence).
+CRITICAL RULES:
+1. Carefully observe the transition between frames to identify EACH distinct sign performed.
+2. Pay extreme attention to subtle hand shapes and pointing directions.
+3. You must return your response ONLY as a valid JSON object with exactly three keys: "reasoning", "raw_gestures", and "nlp_sentence".
+4. "reasoning" should be a step-by-step description of the physical hand motions you see.
+5. "raw_gestures" should be the exact, literal sequence of signs identified based on your reasoning.
+6. "nlp_sentence" should be the grammatically correct English translation.
+7. Do not output any markdown formatting, only the JSON string.`
+        ];
+        
+        for (const b64 of frameData.frames) {
+          contents.push({ inlineData: { data: b64, mimeType: "image/jpeg" } });
+        }
+        
+        console.log('[GEMINI] Sending frames for lightning-fast prediction...');
+        let response;
+        let retries = 2; // Fail fast
+        let delay = 1000;
+        let geminiSuccess = false;
+        
+        while (retries > 0) {
+          try {
+            response = await ai.models.generateContent({
+              model: 'gemini-3.8-flash',
+              contents: contents
+            });
+            geminiSuccess = true;
+            break; // Success
+          } catch (err) {
+            if (err.status === 429 || (err.message && err.message.includes('429'))) {
+              console.log(`[GEMINI] 429 Rate Limit hit. Failing over immediately to save time.`);
+              break; 
+            }
+            else if ((err.status === 503 || (err.message && err.message.includes('503'))) && retries > 1) {
+              console.log(`[GEMINI] 503 High Demand hit. Retrying in ${delay}ms... (${retries - 1} retries left)`);
+              await new Promise((resolve) => setTimeout(resolve, delay));
+              retries--;
+              delay *= 2; 
+            } else {
+              console.error('[GEMINI] API completely failed or exhausted retries.');
+              break;
+            }
+          }
+        }
+        
+        if (geminiSuccess && response) {
+          try { fsModule.unlinkSync(filePath); } catch (e) {} // Clean up video
+          let translationText = response.text.trim();
+          translationText = translationText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          
+          let parsedResult;
+          try {
+            parsedResult = JSON.parse(translationText);
+          } catch (e) {
+            parsedResult = { reasoning: "Failed to parse JSON.", raw_gestures: translationText, nlp_sentence: translationText };
+          }
+          
+          console.log('[GEMINI] Reasoning:', parsedResult.reasoning);
+          console.log('[GEMINI] Raw Gestures:', parsedResult.raw_gestures);
+          console.log('[GEMINI] NLP Sentence:', parsedResult.nlp_sentence);
+          return res.json({ success: true, translation: parsedResult.nlp_sentence, raw: parsedResult.raw_gestures, source: 'Gemini AI' });
+        } else {
+          throw new Error("Gemini API Unavailable");
+        }
+        
+      } catch (err) {
+        console.error('[GEMINI] Prediction error:', err.message, '- Falling back to LOCAL 91-WORD LSTM AI...');
+        
+        // --- LOCAL FALLBACK ---
+        console.log('[LOCAL LSTM AI] Processing video locally using your 91-word lstm_model_custom.h5...');
+        const lstmScriptPath = path.resolve(path.join(__dirname, '..', 'process_video_lstm.py'));
+        
+        exec(`"${pythonExecutable}" "${lstmScriptPath}" "${filePath}"`, { cwd: path.resolve(path.join(__dirname, '..')) }, (error, stdout, stderr) => {
+          try { fsModule.unlinkSync(filePath); } catch (e) {} // Clean up video
+    
+          if (error) {
+            console.error('[LOCAL LSTM AI] Error:', error);
+            return res.status(500).json({ error: 'Both Gemini and Local AI failed.' });
+          }
+    
+          const rawTranslation = stdout.trim();
+          console.log('[LOCAL LSTM AI] Raw Sign Detected:', rawTranslation);
+          
+          let nlpSentence = rawTranslation;
+          if (rawTranslation !== "NO_HANDS_DETECTED" && rawTranslation !== "UNCERTAIN") {
+              nlpSentence = rawTranslation.replace(/^\d+\.\s*/, '');
+              nlpSentence = nlpSentence.toLowerCase();
+              nlpSentence = nlpSentence.charAt(0).toUpperCase() + nlpSentence.slice(1) + ".";
+          }
+          
+          console.log('[LOCAL NLP LAYER] Formatted output:', nlpSentence);
+          res.json({ success: true, translation: nlpSentence, raw: rawTranslation, source: 'Local AI Fallback' });
+        });
+        // --- END LOCAL FALLBACK ---
+      }
+    });
+
+  } catch (error) {
+    console.error('[SERVER] Error during setup:', error);
+    res.status(500).json({ error: 'Server error: ' + (error.message || 'Unknown error') });
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
